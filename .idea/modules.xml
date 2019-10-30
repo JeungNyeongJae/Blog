@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Blog.iml" filepath="$PROJECT_DIR$/Blog.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Blog-UI/Blog-UI.iml" filepath="$PROJECT_DIR$/Blog-UI/Blog-UI.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Blog-auth/Blog-auth.iml" filepath="$PROJECT_DIR$/Blog-auth/Blog-auth.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Blog-auth/Blog-auth-common/Blog-auth-common.iml" filepath="$PROJECT_DIR$/Blog-auth/Blog-auth-common/Blog-auth-common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Blog-auth/Blog-auth-service/Blog-auth-service.iml" filepath="$PROJECT_DIR$/Blog-auth/Blog-auth-service/Blog-auth-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Blog-common/Blog-common.iml" filepath="$PROJECT_DIR$/Blog-common/Blog-common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Blog-eureka-service/Blog-eureka-service.iml" filepath="$PROJECT_DIR$/Blog-eureka-service/Blog-eureka-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Blog-gateway/Blog-gateway.iml" filepath="$PROJECT_DIR$/Blog-gateway/Blog-gateway.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Blog-pojo/Blog-pojo.iml" filepath="$PROJECT_DIR$/Blog-pojo/Blog-pojo.iml" />
+    </modules>
+  </component>
+</project>
