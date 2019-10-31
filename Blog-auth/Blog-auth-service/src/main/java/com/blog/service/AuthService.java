@@ -46,7 +46,7 @@ public class AuthService {
             User user = resp.getBody();
 
             // 生成token
-            return JwtUtils.generateToken(new UserInfo( user.getId() , user.getName() ),
+            return JwtUtils.generateToken(new UserInfo( user.getUserId() , user.getUserName()),
                     jwtProperties.getPrivateKey(), jwtProperties.getExpire());
         } catch (Exception e){
             logger.error("生成token失败，用户名：{}", mobile, e);
