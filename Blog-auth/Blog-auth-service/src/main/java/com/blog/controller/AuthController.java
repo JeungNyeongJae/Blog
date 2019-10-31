@@ -41,7 +41,7 @@ public class AuthController {
     public ResponseEntity<BaseResult> login(@RequestBody User user){
 
         // 调用Service ， 获取token
-        String token = this.authService.login( user.getMobile() , user.getPassword() );
+        String token = this.authService.login( user.getUserMobile() , user.getUserPassword() );
 
         // 有token 登录
         if (StringUtils.isNotBlank( token )) {

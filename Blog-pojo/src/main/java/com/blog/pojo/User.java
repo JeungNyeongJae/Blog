@@ -10,7 +10,7 @@ import javax.persistence.*;
  * @author JeungNyeongJae
  */
 
-@Table(name = "tb_user")
+@Table(name = "user")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,20 +19,20 @@ public class User {
 
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private Long id;
+    private Long userId;
 
-    @Column(name="name")
-    private String name;
+    @Column(name="user_name")
+    private String userName;
 
-    @Column(name="password")
-    private String password;
+    @Column(name="user_password")
+    private String userPassword;
 
-    @Column(name="face")
-    private String face;
+    @Column(name="user_face")
+    private String userFace;
 
-    @Column(name="email")
-    private String email;
+    @Column(name="user_email")
+    private String userEmail;
 
-    @Column(name="mobile")
-    private String mobile;
+    @Column(name="user_mobile")
+    private String userMobile;
 }
