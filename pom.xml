@@ -15,6 +15,7 @@
         <module>Blog-common</module>
         <module>Blog-auth</module>
         <module>Blog-pojo</module>
+        <module>Blog-web-service</module>
     </modules>
 
     <parent>
