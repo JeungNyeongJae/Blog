@@ -3,10 +3,17 @@
 import Vue from 'vue'
 import App from './App'
 import Router from 'vue-router'  //引入vue-router
+import Materialize from 'materialize-css'
+// import 'materialize-css/dist/css/materialize.min.css'
+import '../src/assets/them.scss'
 
 import router from './router'
 
 Vue.use(Router);
+Vue.use(Materialize);
+
+// 配置主题 -- 配置默认主题
+
 
 
 Vue.config.productionTip = false

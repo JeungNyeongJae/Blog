@@ -18,11 +18,14 @@ const router = new Router({
         children:[        //子路由,嵌套路由 （此处偷个懒，免得单独再列一点）
           {
             path: '/', component: homepage
+          },
+          {
+            path: '*', redirect: '/'
           }
       ]
     }, {
     path: '*',
-      redirect: '/login'
+      redirect: '/page'
     }
 ]
 })
