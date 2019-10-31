@@ -2,26 +2,9 @@ server:
   port: 8081
 
 spring:
-  application:
-    name: web-service
-  datasource:
-    url: jdbc:mysql://188.131.229.61/blog?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT
-    username: root
-    password: 1124
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    druid:
-      initial-size: 5
-      min-idle: 5
-      max-active: 20
-      max-wait: 1000
-      test-on-borrow: true
-  servlet:
-    multipart:
-      max-file-size: 5MB
-#  security:
-#    user:
-#      name: admin
-#      password: admin
+  profiles:
+    active: @profiles.active@
+
 eureka:
   client:
     service-url:
@@ -38,3 +21,48 @@ mybatis:
 mapper:
   not-empty: false
   identity: mysql
+
+---
+spring:
+  profiles: JeungNyeongJae
+  application:
+    name: web-service
+  datasource:
+    url: jdbc:mysql://188.131.229.61/blog?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT
+    username: root
+    password: 1124
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 1000
+      test-on-borrow: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+
+---
+spring:
+  profiles: YunYeoHyang
+  application:
+    name: web-service
+  datasource:
+    url: jdbc:mysql://212.64.91.92/blog?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT
+    username: root
+    password: 1124
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 1000
+      test-on-borrow: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+
+#  security:
+#    user:
+#      name: admin
+#      password: admin

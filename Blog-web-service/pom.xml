@@ -95,4 +95,24 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <!-- YunYeoHyang -->
+            <id>YunYeoHyang</id>
+            <properties>
+                <profiles.active>YunYeoHyang</profiles.active>
+            </properties>
+            <activation>
+                <!-- 设置默认激活这个配置 -->
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <!-- JeungNeongJae -->
+            <id>JeungNeongJae</id>
+            <properties>
+                <profiles.active>JeungNeongJae</profiles.active>
+            </properties>
+        </profile>
+    </profiles>
 </project>
