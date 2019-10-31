@@ -17,6 +17,6 @@ eureka:
 sc:
   jwt:
     secret: sc@Login(Auth}*^31)&czxy% # 登录校验的密钥
-    pubKeyPath: E:/rsa/rsa.pub # 公钥地址
-    priKeyPath: E:/rsa/rsa.pri # 私钥地址
+    pubKeyPath: D:/rsa/rsa.pub # 公钥地址
+    priKeyPath: D:/rsa/rsa.pri # 私钥地址
     expire: 30 # 过期时间,单位分钟
