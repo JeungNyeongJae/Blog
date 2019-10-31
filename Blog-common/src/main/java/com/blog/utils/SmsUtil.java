@@ -21,13 +21,13 @@ public class SmsUtil {
     //产品域名,开发者无需替换
     static final String domain = "dysmsapi.aliyuncs.com";
 
-    // TODO 此处需要替换成开发者自己的AK(在阿里云访问控制台寻找)
-//    static final String accessKeyId = "LTAIjJJe67SlCCLL";//
-//    static final String accessKeySecret = "B3BZSQDnuUnfZXf22bbovyPaJmCNDt";
-    static final String accessKeyId = "LTAIlefATxsjTNoL";//
-    static final String accessKeySecret = "zhzDVzH1KjqeZZVOHsTsqfjApi0HJJ";
+    /**此处需要替换成开发者自己的AK(在阿里云访问控制台寻找)
+     *
+     */
+    static final String accessKeyId = "LTAI4Fmba5VrBeS8Cem3EmoT";
+    static final String accessKeySecret = "hiIllx6bizXLGfAF1qQzuYU6t5KQ8x";
 
-    public static SendSmsResponse sendSms(String telephone, String name, String code, String address, String phone) throws ClientException {
+    public static SendSmsResponse sendSms(String telephone, String code) throws ClientException {
 
         //可自助调整超时时间
         System.setProperty("sun.net.client.defaultConnectTimeout", "10000");
@@ -41,19 +41,19 @@ public class SmsUtil {
         //组装请求对象-具体描述见控制台-文档部分内容
         SendSmsRequest request = new SendSmsRequest();
         //必填:待发送手机号
-        request.setPhoneNumbers(telephone);        //15000000000
+        request.setPhoneNumbers(telephone);
         //必填:短信签名-可在短信控制台中找到
-        request.setSignName("桐叔老司机");            //老袁a洗脚6
+        request.setSignName("yinlaoguai");
         //必填:短信模板-可在短信控制台中找到
-        request.setTemplateCode("SMS_130929218");    //SMS_85550034
+        request.setTemplateCode("SMS_176523553");
         //可选:模板中的变量替换JSON串,如模板内容为"亲爱的${name},您的验证码为${code}"时,此处的值为
         //${name}您好，请凭取件码：${code}，至${address}取件，若有问题请咨询${phone}。
-        request.setTemplateParam("{\"name\":\"" + name + "\",\"code\":\"" + code + "\",\"address\":\"" + address + "\",\"phone\":\"" + phone + "\"}");
+        request.setTemplateParam("{\"code\":\""+code+"\"}");
 
         //选填-上行短信扩展码(无特殊需求用户请忽略此字段)
         //request.setSmsUpExtendCode("90997");
 
-        //可选:outId为提供给业务方扩展字段,最终在短信回执消息中将此值带回给调用者
+        // 可选:outId为提供给业务方扩展字段,最终在短信回执消息中将此值带回给调用者
         request.setOutId("yourOutId");
 
         //hint 此处可能会抛出异常，注意catch
@@ -77,7 +77,7 @@ public class SmsUtil {
         //组装请求对象
         QuerySendDetailsRequest request = new QuerySendDetailsRequest();
         //必填-号码
-        request.setPhoneNumber("15151772559");
+        request.setPhoneNumber("13855029721");
         //可选-流水号
         request.setBizId(bizId);
         //必填-发送日期 支持30天内记录查询，格式yyyyMMdd
@@ -97,12 +97,11 @@ public class SmsUtil {
 
     public static void main(String[] args) throws ClientException, InterruptedException {
         /**生成验证码*/
-        //String snumber = RandomStringUtils.random(4); // 有bug
         String number = getNumber();
         /**发送的电话号*/
-        String telephone = "13699282444";
+        String telephone = "15651877253";
         //发短信
-        SendSmsResponse response = sendSms(telephone, "张先生", number, "上海花园", "110");
+        SendSmsResponse response = sendSms(telephone , number);
         System.out.println("短信接口返回的数据----------------");
         System.out.println("Code=" + response.getCode());
         System.out.println("Message=" + response.getMessage());
