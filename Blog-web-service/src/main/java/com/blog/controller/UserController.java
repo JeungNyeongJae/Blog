@@ -1,6 +1,7 @@
 package com.blog.controller;
 
 import com.alibaba.druid.Constants;
+import com.alibaba.fastjson.JSON;
 import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.blog.pojo.User;
@@ -19,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
+import java.lang.invoke.StringConcatFactory;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -91,6 +93,7 @@ public class UserController {
      * @param user // 用户
      * @return
      */
+    @PostMapping
     public ResponseEntity<Void> regist(String checkcode, User user){
         //校验验证码
         String code = httpSession.getAttribute(user.getUserMobile()).toString();
@@ -134,6 +137,49 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
+    /**
+     * 通过手机号和密码进行查询
+     * @param mobile // 手机号
+     * @param activeCode
+     * @return StateCode
+     */
+//    @GetMapping()
+    public ResponseEntity<Void> activeMail(String mobile,String activeCode){
+        //1.从redis中获取code
+            String redisCodes =redisTemplate.opsForValue().get(mobile);
+        //2.比较
+            if(redisCodes==null){
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            if(!redisCodes.equals(activeCode)){
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            //移除redis中的数据
+                redisTemplate.delete(mobile);
+            //根据手机号码查找用户信息
+            String url = "?mobile";
+            //发送请求
+            ResponseEntity<String> entity =restTemplate.getForEntity(url,String.class);
+            //从entity获取用户激活信息
+            String body = entity.getBody();
+            // String类型的json如何转成java对象？  fastjson：阿里巴巴出品
+            User user = JSON.parseObject(body,User.class);
+        if(user==null){
+            return  new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        //6 用户存在，判断是否激活
+        if(user!=null){
+            return  new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        //7 需要激活
+        String activeUrl = "";
+        ResponseEntity<String> activeEntity = restTemplate.getForEntity(activeUrl,String.class);
+
+
+        // 9
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 
     /**
      * 通过手机号和密码进行查询
