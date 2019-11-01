@@ -1,7 +1,5 @@
 package com.blog.controller;
 
-import com.alibaba.druid.Constants;
-import com.alibaba.fastjson.JSON;
 import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.blog.pojo.User;
@@ -11,15 +9,12 @@ import com.blog.utils.SmsUtil;
 import com.blog.vo.BaseResult;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpSession;
-import java.lang.invoke.StringConcatFactory;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -35,47 +30,26 @@ public class UserController {
     private UserService userService;
 
     @Resource
-    private StringRedisTemplate redisTemplate;
+    private RedisTemplate redisTemplate;
 
-    @Resource
-    private HttpSession httpSession;
-
-    @Resource
-    private RestTemplate restTemplate;
-
-
-
-    /**
-     * 注册保存用户信息
-     * @param user // 用户
-     * @return state code
-     */
-    @PostMapping("/register")
-    private ResponseEntity<Object> rigister(@RequestBody User user){
-
-
-        this.userService.saveUser(user);
-
-        return ResponseEntity.ok( new BaseResult(0 , "注册成功"));
-    }
     /**
      * 注册时发送验证短信
-     * @param user // 用户
+     * @param mobile // 用户手机号
      * @return state code
      */
     @PostMapping("/sms")
-    private ResponseEntity<BaseResult> sendSms(@RequestBody User user){
+    private ResponseEntity<BaseResult> sendSms(@RequestParam("mobile") String mobile){
 
         // 生成四位数验证码
         String random = RandomStringUtils.randomNumeric(4);
         System.out.println(random);
 
         // 存入redis
-        redisTemplate.opsForValue().set( user.getUserMobile() , random , 1 , TimeUnit.HOURS);
+        redisTemplate.opsForValue().set( mobile , random , 1 , TimeUnit.HOURS);
 
         // 发送短信
         try {
-            SendSmsResponse sendSmsResponse = SmsUtil.sendSms(user.getUserMobile(), random);
+            SendSmsResponse sendSmsResponse = SmsUtil.sendSms(mobile, random);
 
             if ( "OK".equalsIgnoreCase( sendSmsResponse.getCode() )){
                 return ResponseEntity.ok(new BaseResult( 0 , "发送成功"));
@@ -87,55 +61,41 @@ public class UserController {
             return ResponseEntity.ok(new BaseResult( 1 , "发送失败"));
         }
     }
+
     /**
      * 注册时发送邮箱激活账号
      * @param user // 用户
      * @return state code
      */
-    @PostMapping
-    public ResponseEntity<Void> regist(String checkcode, User user){
-        //校验验证码
-        String code = httpSession.getAttribute(user.getUserMobile()).toString();
-        if(code!=null&&!"".equals(code.trim())){
-            if(code.equals(checkcode)){
-                //移除激活码
-                httpSession.removeAttribute(user.getUserMobile());
-                //调用服务
-                String url = "http://localhost:8088";   //假的链接
-                // 第一个参数：url
-                // 第二个参数：数据
-                // 第三个参数：返回值类型
-                ResponseEntity<String>entity =restTemplate.postForEntity(url,user,String.class);
-                /******************发送邮件******************/
-                /**
-                 * 1 产生activeCode
-                 * 2 将activeCode保存到redis中
-                 *  注意“地址栏的参数中不能带-
-                 * 3 拼接url <a href="localhost:8092/regist/activeMail?telephone=xxx&activeCode=xxxx-sss-aaa">速运快递账号激活</a>
-                 */
-                String activeCode = UUID.randomUUID().toString().replace("-","");
-                // 将code 放到redis中
-                // 第三个参数：时间
-                // 第四个参数：单位
-                redisTemplate.opsForValue().set(user.getUserMobile(), activeCode,1,TimeUnit.DAYS);
-                //发送邮件
-                String activeUrl = "http://localhost:8088" +  //链接假的
-                        "/regist/activeMail?telephone="+user.getUserMobile()+"&activeCode="+activeCode;
-                String content = "<a href='"+activeUrl+"'>百合网账号激活链接</a>";
-                try {
-                    MailUtils.sendMail(user.getUserEmail(),"博客网账号激活",content);
+    @PostMapping("/sendMail")
+    public ResponseEntity<BaseResult> sendMail(User user){
+        //移除激活码
+        redisTemplate.delete(user.getUserMobile());
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                HttpStatus statusCode = entity.getStatusCode();
-                return new ResponseEntity<>(statusCode);
-
-            }
+        // 1 产生activeCode
+        String activeCode = UUID.randomUUID().toString().replace("-","");
+        // 2 将code 放到redis中
+        redisTemplate.opsForValue().set(user.getUserMobile(), activeCode,1,TimeUnit.DAYS);
+        redisTemplate.opsForValue().set("user" , user , 1 , TimeUnit.DAYS);
+        // 3 发送邮件
+        String activeUrl = "http://localhost:10010/v1" +
+                "/web-service/activeMail?telephone="+user.getUserMobile()+"&activeCode="+activeCode;
+        String content = "您好，\n\t" +
+                "欢迎来到JeungNyeongJae博客网。为了您的帐户安全，<a href=\'"+activeUrl+ "\'>请验证您的邮箱</a>。\n\t" +
+                "现在您可以获得各种优质服务，包括：\n\n\t" +
+                "· 订阅关注喜爱博主\n\t" +
+                "· 发表个人博文\n\t" +
+                "· 获得他人关注，喜爱，打赏\n\t" +
+                "· 在线客服问答\n\n\t" +
+                "更改密码或更新账号，请访问<a href=\'" + activeUrl + "\'>账户管理网站</a>。\n\t" +
+                "祝您好运！";
+        try {
+            MailUtils.sendMail(user.getUserEmail(),"博客网账号激活",content);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        return ResponseEntity.ok(new BaseResult(0 , "邮件发送成功"));
     }
-
 
     /**
      * 通过手机号和密码进行查询
@@ -143,40 +103,22 @@ public class UserController {
      * @param activeCode
      * @return StateCode
      */
-//    @GetMapping()
+    @PostMapping("/activeMail")
     public ResponseEntity<Void> activeMail(String mobile,String activeCode){
-        //1.从redis中获取code
-            String redisCodes =redisTemplate.opsForValue().get(mobile);
-        //2.比较
-            if(redisCodes==null){
-                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-            if(!redisCodes.equals(activeCode)){
-                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-            //移除redis中的数据
-                redisTemplate.delete(mobile);
-            //根据手机号码查找用户信息
-            String url = "?mobile";
-            //发送请求
-            ResponseEntity<String> entity =restTemplate.getForEntity(url,String.class);
-            //从entity获取用户激活信息
-            String body = entity.getBody();
-            // String类型的json如何转成java对象？  fastjson：阿里巴巴出品
-            User user = JSON.parseObject(body,User.class);
-        if(user==null){
-            return  new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        // 1 从redis中获取code
+        String redisCodes =redisTemplate.opsForValue().get(mobile).toString();
+        // 2 比较
+        if(redisCodes==null | !redisCodes.equals(activeCode)){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        //6 用户存在，判断是否激活
-        if(user!=null){
-            return  new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        //7 需要激活
-        String activeUrl = "";
-        ResponseEntity<String> activeEntity = restTemplate.getForEntity(activeUrl,String.class);
+        // 移除redis中的数据
+        redisTemplate.delete(mobile);
 
+        // 激活
+        this.userService.saveUser((User)redisTemplate.opsForValue().get("user"));
 
-        // 9
+        redisTemplate.delete("user");
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -200,7 +142,4 @@ public class UserController {
 
         return ResponseEntity.ok( user );
     }
-
-
-
 }
