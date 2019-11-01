@@ -1,6 +1,5 @@
 package com.blog.controller;
 
-import com.alibaba.druid.Constants;
 import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.blog.pojo.User;
@@ -11,7 +10,6 @@ import com.blog.vo.BaseResult;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -47,7 +45,7 @@ public class UserController {
     /**
      * 注册保存用户信息
      * @param user // 用户
-     * @return
+     * @return state code
      */
     @PostMapping("/register")
     private ResponseEntity<Object> rigister(@RequestBody User user){
@@ -60,7 +58,7 @@ public class UserController {
     /**
      * 注册时发送验证短信
      * @param user // 用户
-     * @return
+     * @return state code
      */
     @PostMapping("/sms")
     private ResponseEntity<BaseResult> sendSms(@RequestBody User user){
@@ -89,7 +87,7 @@ public class UserController {
     /**
      * 注册时发送邮箱激活账号
      * @param user // 用户
-     * @return
+     * @return state code
      */
     public ResponseEntity<Void> regist(String checkcode, User user){
         //校验验证码
