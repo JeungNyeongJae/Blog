@@ -7,11 +7,12 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="Blog-common" />
-        <module name="Blog-eureka-service" />
+        <module name="Blog-web-service" />
         <module name="Blog-auth-service" />
         <module name="Blog-auth-common" />
         <module name="Blog-pojo" />
         <module name="Blog-UI" />
+        <module name="Blog-eureka-service" />
         <module name="Blog-gateway" />
       </profile>
     </annotationProcessing>
@@ -25,6 +26,7 @@
       <module name="Blog-gateway" target="11" />
       <module name="Blog-pojo" target="11" />
       <module name="Blog-UI" target="11" />
+      <module name="Blog-web-service" target="11" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
@@ -36,6 +38,7 @@
       <module name="Blog-eureka-service" options="-parameters" />
       <module name="Blog-gateway" options="-parameters" />
       <module name="Blog-pojo" options="-parameters" />
+      <module name="Blog-web-service" options="-parameters" />
     </option>
   </component>
 </project>

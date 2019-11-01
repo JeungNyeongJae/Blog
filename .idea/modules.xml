@@ -11,6 +11,7 @@
       <module fileurl="file://$PROJECT_DIR$/Blog-eureka-service/Blog-eureka-service.iml" filepath="$PROJECT_DIR$/Blog-eureka-service/Blog-eureka-service.iml" />
       <module fileurl="file://$PROJECT_DIR$/Blog-gateway/Blog-gateway.iml" filepath="$PROJECT_DIR$/Blog-gateway/Blog-gateway.iml" />
       <module fileurl="file://$PROJECT_DIR$/Blog-pojo/Blog-pojo.iml" filepath="$PROJECT_DIR$/Blog-pojo/Blog-pojo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Blog-web-service/Blog-web-service.iml" filepath="$PROJECT_DIR$/Blog-web-service/Blog-web-service.iml" />
     </modules>
   </component>
 </project>
