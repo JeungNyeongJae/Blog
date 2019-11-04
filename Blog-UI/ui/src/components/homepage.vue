@@ -1,9 +1,9 @@
 <template>
   <el-container>
     <el-header class="header">
-      <!--<el-row type="flex" justify="center">-->
-        <!--<el-col :span="20">-->
-          <!--<div class="grid-content bg-purple">-->
+      <el-row type="flex" justify="center">
+        <el-col :span="20">
+          <div class="grid-content bg-purple">
             <el-menu :default-active="activeIndex"
                      class="el-menu-demo"
                      background-color="rgba(255,255,255,0)"
@@ -17,10 +17,10 @@
               <el-menu-item index="4">情感</el-menu-item>
               <el-menu-item index="5">娱乐</el-menu-item>
             </el-menu>
-          <!--</div>-->
-        <!--</el-col>-->
-        <!--<el-col :span="4">-->
-          <!--<div class="grid-content bg-purple-light">-->
+          </div>
+        </el-col>
+        <el-col :span="4">
+          <div class="grid-content bg-purple-light">
           <el-dropdown>
           <!--<el-avatar :size="size" :src="circleUrl"></el-avatar>-->
             <el-avatar icon="el-icon-user-solid"></el-avatar>
@@ -31,9 +31,9 @@
             </el-dropdown-menu>
           </el-dropdown>
           <span class="LogRes"><router-link :to="{path:'login'}">登录/</router-link><router-link :to="{path:'register'}">注册</router-link></span>
-          <!--</div>-->
-        <!--</el-col>-->
-      <!--</el-row>-->
+          </div>
+        </el-col>
+      </el-row>
     </el-header>
   </el-container>
 </template>

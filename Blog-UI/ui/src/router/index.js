@@ -3,6 +3,7 @@ import Router from 'vue-router'  //引入vue-router
 import login from '../components/login'
 import page from '../components/page'
 import homepage from '../components/homepage'
+import register from '../components/register'
 
 Vue.use(Router)  //Vue全局使用Router
 
@@ -21,6 +22,9 @@ const router = new Router({
           },
           {
             path: '*', redirect: '/'
+          },
+          {
+            path: '/register', component: register
           }
       ]
     }, {
