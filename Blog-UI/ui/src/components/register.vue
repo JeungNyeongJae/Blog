@@ -136,12 +136,12 @@
   <!--</div>-->
 </template>
 
+
 <script>
   export default {
     name: "register",
     data() {
       const validatePhone = (rule, value, callback) => {
-        console.log(value)
         if (!value) {
           return callback(new Error('手机号不能为空'));
         } else if (!this.checkMobile(value)) {
@@ -150,7 +150,7 @@
         else {
           return callback();
         }
-      }
+      };
       //  <!--验证码是否为空-->
       let checkSmscode = (rule, value, callback) => {
         if (value === '') {
@@ -158,7 +158,7 @@
         } else {
           callback()
         }
-      }
+      };
       const validatePass = (rule, value, callback) => {
         if (value === '') {
           callback(new Error('请输入密码'));
@@ -183,8 +183,10 @@
           pass: '',
           checkPass: '',
           checkPhone: '',
-          code: ''
+          code: '',
+          email: '',
         },
+        checkCode: '',
         buttonText: '发送验证码',
         isDisabled: false, // 是否禁止点击发送验证码按钮
         flag: true,
@@ -205,24 +207,22 @@
       };
     },
     methods: {
-      // submitForm(formName) {
-      //   this.$refs[formName].validate((valid) => {
-      //     if (valid) {
-      //       alert('submit!');
-      //     } else {
-      //       console.log('error submit!!');
-      //       return false;
-      //     }
-      //   });
-      // },
-      // <!--提交注册-->
       submitForm(formName) {
-        console.log(formName);
         this.$refs[formName].validate(valid => {
-          if (valid) {
-            setTimeout(() => {
-              alert('注册成功')
-            }, 400);
+            console.log(1);
+          //  && this.ruleForm.code === this.checkCode
+          if (valid ) {
+              this.$axios.post("/api/web-service/sendMail" , {
+                  'userPassword' : this.ruleForm.pass,
+                  'userEmail' : this.ruleForm.email,
+                  'userMobile' : this.ruleForm.checkPhone
+              }).then( res => {
+                if( res.data.data.errno === 0 ) {
+                    alert('激活邮件已发送，请查看邮件完成注册');
+                } else {
+                    alert('激活邮件发送失败，请重试');
+                }
+              });
           } else {
             console.log("error submit!!");
             return false;
@@ -231,35 +231,38 @@
       },
       // <!--发送验证码-->
       sendCode () {
-        let tel = this.ruleForm.checkPhone
+        let tel = this.ruleForm.checkPhone;
         if (this.checkMobile(tel)) {
-          console.log(tel)
-          let time = 60
-          this.buttonText = '已发送';
-          this.isDisabled = true;
-          if (this.flag) {
-            this.flag = false;
-            let timer = setInterval(() => {
-              time--;
-              this.buttonText = time + ' 秒'
-              if (time === 0) {
-                clearInterval(timer);
-                this.buttonText = '重新获取'
-                this.isDisabled = false
-                this.flag = true;
-              }
-            }, 1000)
-          }
+          let time = 60;
+            this.$axios.post( "/api/web-service/sms" , tel ).then( res => {
+                let d = res.data.data;
+                if(d.errno === 0){
+                    this.buttonText = '已发送';
+                    this.isDisabled = true;
+                    this.checkCode = d.checkcode;
+                    if (this.flag) {
+                        this.flag = false;
+                        let timer = setInterval(() => {
+                            time--;
+                            this.buttonText = time + ' 秒';
+                            if (time === 0) {
+                                clearInterval(timer);
+                                this.buttonText = '重新获取';
+                                this.isDisabled = false;
+                                this.flag = true;
+                            }
+                        }, 1000)
+                    }
+                }else{
+                    alert("发送失败！");
+                }
+            });
         }
       },
       // 验证手机号
       checkMobile(str) {
         let re = /^1[3456789]\d{9}$/;
-        if (re.test(str)) {
-          return true;
-        } else {
-          return false;
-        }
+        return re.test(str);
       },
       // <!--进入登录页-->
       gotoLogin() {},
@@ -269,9 +272,8 @@
     }
   }
 </script>
+
 <style lang="scss" scoped>
-
-
   .login_bg {
     bottom: 0;
     direction: ltr;
@@ -315,19 +317,18 @@
           opacity: 0.7;
         }
         .row{
-          margin-bottom: 0px;
+          margin-bottom: 0;
         }
         .waves-effect{
           border-radius: 150px;
           background-image:linear-gradient(45deg, #8e24aa, #ff6e40);
         }
         .el-form-item>.el-form-item__content{
-          margin-left: 0px !important;
+          margin-left: 0 !important;
         }
       }
     }
   }
-
 </style>
 <style  lang="scss">
   .el-form-item__error{

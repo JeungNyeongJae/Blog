@@ -5,7 +5,7 @@ import page from '../components/page'
 import homepage from '../components/homepage'
 import register from '../components/register'
 
-Vue.use(Router)  //Vue全局使用Router
+Vue.use(Router);  //Vue全局使用Router
 
 const router = new Router({
   routes: [              //配置路由，这里是个数组
@@ -32,6 +32,6 @@ const router = new Router({
       redirect: '/page'
     }
 ]
-})
+});
 // 5.导出路由
 export default router

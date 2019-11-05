@@ -21,6 +21,7 @@ public class UserService {
      * @param user // 用户
      */
     public void saveUser(User user){
+        user.setUserName("匿名用户");
         userMapper.insert(user);
     }
 

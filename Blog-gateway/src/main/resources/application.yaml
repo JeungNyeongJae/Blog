@@ -19,6 +19,7 @@ zuul:
   prefix: /v1
   retryable: true
   routes:
+    web-service: /web-service/**
     auth-service: /auth-service/**
   sensitive-headers: Cookie,Set-Cookie
 ribbon:
@@ -39,4 +40,7 @@ sc:
     pubKeyPath: D:/rsa/rsa.pub # 公钥地址
   filter:
     allowPaths:
+      - /sms
+      - /sendMail
+      - /activeMail
       - /login
