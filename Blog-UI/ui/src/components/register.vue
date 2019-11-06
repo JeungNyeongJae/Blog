@@ -138,144 +138,161 @@
 
 
 <script>
-  export default {
-    name: "register",
-    data() {
-      const validatePhone = (rule, value, callback) => {
-        if (!value) {
-          return callback(new Error('手机号不能为空'));
-        } else if (!this.checkMobile(value)) {
-          callback(new Error('手机号码不合法'))
-        } else if (this.queryMobile(value)===1) {
-            console.log(this.queryMobile(value))
-          callback(new Error('该手机号已被注册'))
-        } else {
-            return callback();
-        }
-      };
-      //  <!--验证码是否为空-->
-      let checkSmscode = (rule, value, callback) => {
-        if (value === '') {
-          callback(new Error('请输入手机验证码'))
-        } else {
-          callback()
-        }
-      };
-      const validatePass = (rule, value, callback) => {
-        if (value === '') {
-          callback(new Error('请输入密码'));
-        } else {
-          if (this.ruleForm.checkPass !== '') {
-            this.$refs.ruleForm.validateField('checkPass');
-          }
-          callback();
-        }
-      };
-      const validatePass2 = (rule, value, callback) => {
-        if (value === '') {
-          callback(new Error('请再次输入密码'));
-        } else if (value !== this.ruleForm.pass) {
-          callback(new Error('两次输入密码不一致!'));
-        } else {
-          callback();
-        }
-      };
-      return {
-        ruleForm: {
-          pass: '',
-          checkPass: '',
-          checkPhone: '',
-          code: '',
-          email: '',
-        },
-        buttonText: '发送验证码',
-        isDisabled: false, // 是否禁止点击发送验证码按钮
-        flag: true,
-        rules: {
-          pass: [
-            { validator: validatePass, trigger: ['blur', 'change'] }
-          ],
-          checkPass: [
-            { validator: validatePass2, trigger: ['blur', 'change'] }
-          ],
-          checkPhone: [
-            { validator: validatePhone, trigger: ['blur', 'change'] }
-          ],
-          code: [
-            { validator: checkSmscode, trigger: ['blur', 'change'] }
-          ]
-        }
-      };
-    },
-    methods: {
-      submitForm(formName) {
-        this.$refs[formName].validate(valid => {
-          if (valid ) {
-              this.$axios.post("/api/web-service/sendMail" , {
-                  'userPassword' : this.ruleForm.pass,
-                  'userEmail' : this.ruleForm.email,
-                  'userMobile' : this.ruleForm.checkPhone
-              }).then( res => {
-                if( res.data.data.errno === 0 ) {
-                    alert('激活邮件已发送，请查看邮件完成注册');
+    export default {
+        name: "register",
+        data() {
+            const validatePhone = (rule, value, callback) => {
+                if (!value) {
+                    return callback(new Error('手机号不能为空'));
+                } else if (!this.checkMobile(value)) {
+                    callback(new Error('手机号码不合法'))
+                } else if (this.queryMobile(value) === true) {
+                    callback(new Error('该手机号已被注册'))
                 } else {
-                    alert('激活邮件发送失败，请重试');
+                    return callback();
                 }
-              });
-          } else {
-            // console.log("error submit!!");
-            return false;
-          }
-        })
-      },
-      // <!--发送验证码-->
-      sendCode () {
-        let tel = this.ruleForm.checkPhone;
-        if (this.checkMobile(tel)) {
-          let time = 60;
-            this.$axios.get( "/api/web-service/sendSms/" + tel ).then( res => {
-                let d = res.data.data;
-                if(d.errno === 0){
-                    this.buttonText = '已发送';
-                    this.isDisabled = true;
-                    if (this.flag) {
-                        this.flag = false;
-                        let timer = setInterval(() => {
-                            time--;
-                            this.buttonText = time + ' 秒';
-                            if (time === 0) {
-                                clearInterval(timer);
-                                this.buttonText = '重新获取';
-                                this.isDisabled = false;
-                                this.flag = true;
-                            }
-                        }, 1000)
+            };
+            //  <!--验证码是否为空-->
+            let checkSmscode = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('请输入手机验证码'))
+                } else if (this.verifySmsCode(value)) {
+                    callback(new Error('验证码不正确'))
+                } else {
+                    callback()
+                }
+            };
+            const validatePass = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('请输入密码'));
+                } else {
+                    if (this.ruleForm.checkPass !== '') {
+                        this.$refs.ruleForm.validateField('checkPass');
                     }
-                }else{
-                    alert("发送失败！");
+                    callback();
                 }
-            });
+            };
+            const validatePass2 = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('请再次输入密码'));
+                } else if (value !== this.ruleForm.pass) {
+                    callback(new Error('两次输入密码不一致!'));
+                } else {
+                    callback();
+                }
+            };
+            return {
+                ruleForm: {
+                    pass: '',
+                    checkPass: '',
+                    checkPhone: '',
+                    code: '',
+                    email: '',
+                },
+                buttonText: '发送验证码',
+                isDisabled: false, // 是否禁止点击发送验证码按钮
+                flag: true,
+                rules: {
+                    pass: [{
+                        validator: validatePass,
+                        trigger: ['blur', 'change']
+                    }],
+                    checkPass: [{
+                        validator: validatePass2,
+                        trigger: ['blur', 'change']
+                    }],
+                    checkPhone: [{
+                        validator: validatePhone,
+                        trigger: ['blur', 'change']
+                    }],
+                    code: [{
+                        validator: checkSmscode,
+                        trigger: ['blur', 'change']
+                    }]
+                }
+            };
+        },
+        methods: {
+            submitForm(formName) {
+                this.$refs[formName].validate(valid => {
+                    if (valid ) {
+                        this.$axios.post("/api/web-service/sendMail" , {
+                            'userPassword' : this.ruleForm.pass,
+                            'userEmail' : this.ruleForm.email,
+                            'userMobile' : this.ruleForm.checkPhone
+                        }).then( res => {
+                            if( res.data.data.errno === 0 ) {
+                                alert('激活邮件已发送，请查看邮件完成注册');
+                            } else {
+                                alert('激活邮件发送失败，请重试');
+                            }
+                        });
+                    } else {
+                        alert("error submit!!");
+                        return false;
+                    }
+                })
+            },
+            // <!--发送验证码-->
+            sendCode () {
+                let tel = this.ruleForm.checkPhone;
+                if (this.checkMobile(tel)) {
+                    let time = 60;
+                    this.$axios.get( "/api/web-service/sendSms?mobile=" + tel ).then( res => {
+                        let d = res.data.data;
+                        if(d.errno === 0){
+                            this.buttonText = '已发送';
+                            this.isDisabled = true;
+                            if (this.flag) {
+                                this.flag = false;
+                                let timer = setInterval(() => {
+                                    time--;
+                                    this.buttonText = time + ' 秒';
+                                    if (time === 0) {
+                                        clearInterval(timer);
+                                        this.buttonText = '重新获取';
+                                        this.isDisabled = false;
+                                        this.flag = true;
+                                    }
+                                }, 1000)
+                            }
+                        }else{
+                            alert("发送失败！");
+                        }
+                    });
+                }
+            },
+            // 验证手机号规范
+             checkMobile(str) {
+                let re = /^1[3456789]\d{9}$/;
+                return re.test(str);
+             },
+
+            // 验证手机号是否可用
+            queryMobile(str) {
+                this.$axios.get("/api/web-service/query?mobile=" + str).then( res => {
+                    if (res) {
+                        return res.data.data.errno === 1;
+                    }
+                });
+            },
+
+            // 验证手机验证码是否正确
+            verifySmsCode( value ){
+                this.$axios.get("/api/web-service/verifySms?mobile=" + this.ruleForm.checkPhone + "&code=" + value).then( res => {
+                    if (res) {
+                        return res.data.data.errno === 1;
+                    }
+                });
+            },
+
+            // <!--进入登录页-->
+            gotoLogin() {},
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            }
         }
-      },
-      // 验证手机号
-      checkMobile(str) {
-        let re = /^1[3456789]\d{9}$/;
-        return re.test(str);
-      },
-      queryMobile(str) {
-          let count;
-          this.$axios.get("/api/web-service/query/" + str).then( res => {
-              count = res.data.data.errno;
-          });
-          return count;
-      },
-      // <!--进入登录页-->
-      gotoLogin() {},
-      resetForm(formName) {
-        this.$refs[formName].resetFields();
-      }
     }
-  }
 </script>
 
 <style lang="scss" scoped>

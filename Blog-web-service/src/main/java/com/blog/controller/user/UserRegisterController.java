@@ -37,8 +37,8 @@ public class UserRegisterController {
      * @param mobile // 用户手机号
      * @return status code
      */
-    @GetMapping("/sendSms/{mobile}")
-    private ResponseEntity<BaseResult> sendSms(@PathVariable("mobile") String mobile){
+    @GetMapping("/sendSms")
+    public ResponseEntity<BaseResult> sendSms(String mobile){
         // 生成四位数验证码
         String random = RandomStringUtils.randomNumeric(4);
 
@@ -66,9 +66,12 @@ public class UserRegisterController {
      * @param code 验证码
      * @return status code
      */
-    @PostMapping("/verifySms")
-    private ResponseEntity<BaseResult> verifySms(String mobile , String code){
-        return null;
+    @GetMapping("/verifySms")
+    public ResponseEntity<BaseResult> verifySms(String mobile , String code){
+        if (redisTemplate.opsForValue().get(mobile).equals(code)) {
+            return ResponseEntity.ok(new BaseResult( 0 , "OK"));
+        }
+        return ResponseEntity.ok(new BaseResult( 1 , "Wrong"));
     }
 
     /**
@@ -139,7 +142,6 @@ public class UserRegisterController {
      */
     @GetMapping("/activeMail")
     public ResponseEntity<Void> activeMail(String mobile,String activeCode){
-
         // 1 从redis中获取code
         String redisCodes = (String) redisTemplate.opsForValue().get(mobile);
 
@@ -163,8 +165,8 @@ public class UserRegisterController {
      * @param mobile // 手机号
      * @return User
      */
-    @GetMapping("/query/{mobile}")
-    public ResponseEntity<BaseResult> queryUser(@PathVariable("mobile") String mobile){
+    @GetMapping("/query")
+    public ResponseEntity<BaseResult> queryUser(String mobile){
         // 通过手机号查询用户
         if (this.userRegisterService.findByMobile( mobile ) != null) {
             return ResponseEntity.ok(new BaseResult( 1 , "该手机号已被注册！"));
@@ -180,16 +182,13 @@ public class UserRegisterController {
      */
     @GetMapping("/queryUser")
     public ResponseEntity<User> queryUser(@RequestParam("mobile") String mobile , @RequestParam("password") String password){
-
         // 通过手机号查询用户
         User user = this.userRegisterService.findByMobile( mobile );
 
         // 非空判断&密码校验
         if(user == null || !user.getUserPassword().equals(password)){
-
             return ResponseEntity.ok( null );
         }
-
         return ResponseEntity.ok( user );
     }
 }
