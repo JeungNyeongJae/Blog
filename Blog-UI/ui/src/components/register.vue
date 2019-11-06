@@ -142,16 +142,13 @@
     name: "register",
     data() {
       const validatePhone = (rule, value, callback) => {
-        if (!value) {
-          return callback(new Error('手机号不能为空'));
-        } else if (!this.checkMobile(value)) {
-          callback(new Error('手机号码不合法'))
-        } else if (this.queryMobile(value)===1) {
-            console.log(this.queryMobile(value))
-          callback(new Error('该手机号已被注册'))
-        } else {
-            return callback();
-        }
+          if (!value) {
+            return callback(new Error('手机号不能为空'));
+          } else if (!this.checkMobile(value)) {
+            callback(new Error('手机号码不合法'))
+          } else {
+            this.queryMobile(value, callback);
+          }
       };
       //  <!--验证码是否为空-->
       let checkSmscode = (rule, value, callback) => {
@@ -188,6 +185,7 @@
           code: '',
           email: '',
         },
+        count: null,
         buttonText: '发送验证码',
         isDisabled: false, // 是否禁止点击发送验证码按钮
         flag: true,
@@ -260,15 +258,19 @@
       // 验证手机号
       checkMobile(str) {
         let re = /^1[3456789]\d{9}$/;
+        // console.log(re.test(str))
         return re.test(str);
       },
-      queryMobile(str) {
-          let count;
-          this.$axios.get("/api/web-service/query/" + str).then( res => {
-              count = res.data.data.errno;
-          });
-          return count;
-      },
+      async queryMobile(str, callback){
+        // new Promise((resolve,reject)=> {
+          this.$axios.get("/api/web-service/query/" + str).then(res =>{
+            if (res.data.data.errno === 1){
+              callback(new Error('该手机号码已存在，请修改手机号码。'));
+            } else {
+              callback();
+            }
+          })
+  },
       // <!--进入登录页-->
       gotoLogin() {},
       resetForm(formName) {

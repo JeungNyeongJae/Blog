@@ -54,7 +54,7 @@ const removePending = (key, isRequest = false) => {
   delete pending[key]
 };
 const getRequestIdentify = (config, isReuest = false) => {
-  console.log( config.url );
+  // console.log( config.url );
   let url = config.url;
   if (isReuest) {
     url = config.baseURL + config.url.substring(1, config.url.length)
