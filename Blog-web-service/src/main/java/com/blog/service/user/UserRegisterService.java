@@ -1,4 +1,4 @@
-package com.blog.service;
+package com.blog.service.user;
 
 import com.blog.dao.UserMapper;
 import com.blog.pojo.User;
@@ -11,25 +11,40 @@ import tk.mybatis.mapper.entity.Example;
  */
 
 @Service
-public class UserService {
+public class UserRegisterService {
 
     @Autowired
     private UserMapper userMapper;
 
     /**
      * 注册保存用户信息
-     * @param user // 用户
+     * @param user 用户
      */
     public void saveUser(User user){
         user.setUserName("匿名用户");
+        user.setStatus(0);
         userMapper.insert(user);
     }
 
-    public User findByMobile(String mobile) {
+    /**
+     * 根据用户手机号激活
+     * @param mobile 手机号
+     */
+    public void upDateByMobile(String mobile) {
+        User user = this.findByMobile(mobile);
+        user.setStatus(1);
+        userMapper.updateByPrimaryKey(user);
+    }
 
+    /**
+     * 根据手机查找用户
+     * @param mobile 用户手机号
+     * @return User
+     */
+    public User findByMobile(String mobile) {
         Example example = new Example(User.class);
         Example.Criteria criteria = example.createCriteria();
-        criteria.andEqualTo("user_mobile" , mobile);
+        criteria.andEqualTo("userMobile" , mobile);
         return this.userMapper.selectOneByExample( example );
     }
 }

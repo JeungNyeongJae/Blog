@@ -146,9 +146,11 @@
           return callback(new Error('手机号不能为空'));
         } else if (!this.checkMobile(value)) {
           callback(new Error('手机号码不合法'))
-        }
-        else {
-          return callback();
+        } else if (this.queryMobile(value)===1) {
+            console.log(this.queryMobile(value))
+          callback(new Error('该手机号已被注册'))
+        } else {
+            return callback();
         }
       };
       //  <!--验证码是否为空-->
@@ -186,7 +188,6 @@
           code: '',
           email: '',
         },
-        checkCode: '',
         buttonText: '发送验证码',
         isDisabled: false, // 是否禁止点击发送验证码按钮
         flag: true,
@@ -209,8 +210,6 @@
     methods: {
       submitForm(formName) {
         this.$refs[formName].validate(valid => {
-            console.log(1);
-          //  && this.ruleForm.code === this.checkCode
           if (valid ) {
               this.$axios.post("/api/web-service/sendMail" , {
                   'userPassword' : this.ruleForm.pass,
@@ -224,7 +223,7 @@
                 }
               });
           } else {
-            console.log("error submit!!");
+            // console.log("error submit!!");
             return false;
           }
         })
@@ -234,12 +233,11 @@
         let tel = this.ruleForm.checkPhone;
         if (this.checkMobile(tel)) {
           let time = 60;
-            this.$axios.post( "/api/web-service/sms" , tel ).then( res => {
+            this.$axios.get( "/api/web-service/sendSms/" + tel ).then( res => {
                 let d = res.data.data;
                 if(d.errno === 0){
                     this.buttonText = '已发送';
                     this.isDisabled = true;
-                    this.checkCode = d.checkcode;
                     if (this.flag) {
                         this.flag = false;
                         let timer = setInterval(() => {
@@ -263,6 +261,13 @@
       checkMobile(str) {
         let re = /^1[3456789]\d{9}$/;
         return re.test(str);
+      },
+      queryMobile(str) {
+          let count;
+          this.$axios.get("/api/web-service/query/" + str).then( res => {
+              count = res.data.data.errno;
+          });
+          return count;
       },
       // <!--进入登录页-->
       gotoLogin() {},

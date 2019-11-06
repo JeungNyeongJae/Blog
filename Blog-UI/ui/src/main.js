@@ -44,36 +44,36 @@ Axios.interceptors.request.use(function (config) {
   return Promise.reject(error);
 });
 
-//
-// const pending = {};
-// const CancelToken = Axios.CancelToken;
-// const removePending = (key, isRequest = false) => {
-//   if (pending[key] && isRequest) {
-//     pending[key]('取消重复请求')
-//   }
-//   delete pending[key]
-// };
-// const getRequestIdentify = (config, isReuest = false) => {
-//   console.log( config.url );
-//   let url = config.url;
-//   if (isReuest) {
-//     url = config.baseURL + config.url.substring(1, config.url.length)
-//   }
-// //   return config.method === 'get' ? encodeURIComponent(url + JSON.stringify(config.params)) : encodeURIComponent(config.url + JSON.stringify(config.data))
-// };
-//
-// // 请求拦截器
-// Axios.interceptors.request.use(config => {
-//   // 拦截重复请求(即当前正在进行的相同请求)
-//   let requestData = getRequestIdentify(config, true);
-//   removePending(requestData, true);
-//   config.cancelToken = new CancelToken((c) => {
-//     pending[requestData] = c
-//   });
-//   return config
-// }, error => {
-//   return Promise.reject(error);
-// });
+
+const pending = {};
+const CancelToken = Axios.CancelToken;
+const removePending = (key, isRequest = false) => {
+  if (pending[key] && isRequest) {
+    pending[key]('取消重复请求')
+  }
+  delete pending[key]
+};
+const getRequestIdentify = (config, isReuest = false) => {
+  console.log( config.url );
+  let url = config.url;
+  if (isReuest) {
+    url = config.baseURL + config.url.substring(1, config.url.length)
+  }
+  return config.method === 'get' ? encodeURIComponent(url + JSON.stringify(config.params)) : encodeURIComponent(config.url + JSON.stringify(config.data))
+};
+
+// 请求拦截器
+Axios.interceptors.request.use(config => {
+  // 拦截重复请求(即当前正在进行的相同请求)
+  let requestData = getRequestIdentify(config, true);
+  removePending(requestData, true);
+  config.cancelToken = new CancelToken((c) => {
+    pending[requestData] = c
+  });
+  return config
+}, error => {
+  return Promise.reject(error);
+});
 
 /** ****************************************************************************************************************************************************************************************/
 

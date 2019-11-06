@@ -40,7 +40,10 @@ sc:
     pubKeyPath: D:/rsa/rsa.pub # 公钥地址
   filter:
     allowPaths:
-      - /sms
+      - /sendSms
+      - /verifySms
       - /sendMail
       - /activeMail
+      - /query
+      - /queryUser
       - /login

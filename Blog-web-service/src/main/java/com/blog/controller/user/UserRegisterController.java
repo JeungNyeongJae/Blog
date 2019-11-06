@@ -1,10 +1,9 @@
-package com.blog.controller;
+package com.blog.controller.user;
 
-import com.alibaba.fastjson.JSON;
 import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.blog.pojo.User;
-import com.blog.service.UserService;
+import com.blog.service.user.UserRegisterService;
 import com.blog.utils.MailUtils;
 import com.blog.utils.SmsUtil;
 import com.blog.vo.BaseResult;
@@ -25,10 +24,10 @@ import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping
-public class UserController {
+public class UserRegisterController {
 
     @Autowired
-    private UserService userService;
+    private UserRegisterService userRegisterService;
 
     @Resource
     private RedisTemplate redisTemplate;
@@ -36,11 +35,10 @@ public class UserController {
     /**
      * 注册时发送验证短信
      * @param mobile // 用户手机号
-     * @return state code
+     * @return status code
      */
-    @PostMapping("/sms")
-    private ResponseEntity<BaseResult> sendSms(@RequestBody String mobile){
-
+    @GetMapping("/sendSms/{mobile}")
+    private ResponseEntity<BaseResult> sendSms(@PathVariable("mobile") String mobile){
         // 生成四位数验证码
         String random = RandomStringUtils.randomNumeric(4);
 
@@ -52,7 +50,7 @@ public class UserController {
             SendSmsResponse sendSmsResponse = SmsUtil.sendSms(mobile, random);
 
             if ( "OK".equalsIgnoreCase( sendSmsResponse.getCode() )){
-                return ResponseEntity.ok(new BaseResult( 0 , "发送成功").append("checkcode" , random));
+                return ResponseEntity.ok(new BaseResult( 0 , "发送成功"));
             } else {
                 return ResponseEntity.ok(new BaseResult(1, sendSmsResponse.getMessage()));
             }
@@ -60,6 +58,17 @@ public class UserController {
             e.printStackTrace();
             return ResponseEntity.ok(new BaseResult( 1 , "发送失败"));
         }
+    }
+
+    /**
+     * 验证手机验证码
+     * @param mobile 手机号
+     * @param code 验证码
+     * @return status code
+     */
+    @PostMapping("/verifySms")
+    private ResponseEntity<BaseResult> verifySms(String mobile , String code){
+        return null;
     }
 
     /**
@@ -76,9 +85,7 @@ public class UserController {
         // 产生activeCode
         String activeCode = UUID.randomUUID().toString().replace("-","");
 
-        /** 邮件信息
-         *
-         */
+        // 邮件信息
         String activeUrl = "http://localhost:10010/v1" +
                 "/web-service/activeMail?mobile="+user.getUserMobile()+"&activeCode="+activeCode;
         String content = "<div>\n" +
@@ -116,49 +123,66 @@ public class UserController {
         }
         // 将邮件激活码 放到redis中
         redisTemplate.opsForValue().set(user.getUserMobile(), activeCode,1,TimeUnit.DAYS);
-        redisTemplate.opsForValue().set("user" , JSON.toJSON(user).toString() , 1 , TimeUnit.DAYS);
 
+        // 保存用户信息
+        userRegisterService.saveUser(user);
+
+        // 返回信息
         return ResponseEntity.ok(new BaseResult(0 , "邮件发送成功"));
     }
 
     /**
-     * 通过手机号和密码进行查询
+     * 激活账号
      * @param mobile // 手机号
      * @param activeCode // UUID
      * @return StateCode
      */
     @GetMapping("/activeMail")
     public ResponseEntity<Void> activeMail(String mobile,String activeCode){
+
         // 1 从redis中获取code
-        String redisCodes =redisTemplate.opsForValue().get(mobile).toString();
+        String redisCodes = (String) redisTemplate.opsForValue().get(mobile);
+
         // 2 比较
-        if(redisCodes==null | !redisCodes.equals(activeCode)){
+        if (redisCodes == null | (redisCodes != null && !redisCodes.equals(activeCode))) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
         // 移除redis中的数据
         redisTemplate.delete(mobile);
 
         // 激活
-        String user = (String) redisTemplate.opsForValue().get("user");
-        JSON json = (JSON) JSON.parse(user);
-        userService.saveUser(json.toJavaObject(User.class));
+        this.userRegisterService.upDateByMobile( mobile );
 
-        redisTemplate.delete("user");
-
+        // 返回信息
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /**
-     * 通过手机号和密码进行查询
+     * 通过手机号查询用户
+     * @param mobile // 手机号
+     * @return User
+     */
+    @GetMapping("/query/{mobile}")
+    public ResponseEntity<BaseResult> queryUser(@PathVariable("mobile") String mobile){
+        // 通过手机号查询用户
+        if (this.userRegisterService.findByMobile( mobile ) != null) {
+            return ResponseEntity.ok(new BaseResult( 1 , "该手机号已被注册！"));
+        }
+        return ResponseEntity.ok(new BaseResult( 0 , "OK"));
+    }
+
+    /**
+     * 通过手机号和密码进行查询用户
      * @param mobile // 手机号
      * @param password // 密码
-     * @return StateCode
+     * @return User
      */
-    @GetMapping("/query")
+    @GetMapping("/queryUser")
     public ResponseEntity<User> queryUser(@RequestParam("mobile") String mobile , @RequestParam("password") String password){
 
         // 通过手机号查询用户
-        User user = this.userService.findByMobile( mobile );
+        User user = this.userRegisterService.findByMobile( mobile );
 
         // 非空判断&密码校验
         if(user == null || !user.getUserPassword().equals(password)){
