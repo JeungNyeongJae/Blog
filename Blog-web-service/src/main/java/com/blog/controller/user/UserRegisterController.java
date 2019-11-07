@@ -10,7 +10,6 @@ import com.blog.vo.BaseResult;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +41,8 @@ public class UserRegisterController {
         // 生成四位数验证码
         String random = RandomStringUtils.randomNumeric(4);
 
+        System.out.println(random);
+
         // 存入redis
         redisTemplate.opsForValue().set( mobile , random , 1 , TimeUnit.HOURS);
 
@@ -68,10 +69,12 @@ public class UserRegisterController {
      */
     @GetMapping("/verifySms")
     public ResponseEntity<BaseResult> verifySms(String mobile , String code){
-        if (redisTemplate.opsForValue().get(mobile).equals(code)) {
-            return ResponseEntity.ok(new BaseResult( 0 , "OK"));
+        if (redisTemplate.keys("*").contains(mobile)) {
+            if (redisTemplate.opsForValue().get(mobile).equals(code)) {
+                return ResponseEntity.ok(new BaseResult(0, "OK"));
+            }
         }
-        return ResponseEntity.ok(new BaseResult( 1 , "Wrong"));
+        return ResponseEntity.ok(new BaseResult(1, "Wrong"));
     }
 
     /**
@@ -83,7 +86,9 @@ public class UserRegisterController {
     public ResponseEntity<BaseResult> sendMail(@RequestBody User user){
 
         // 移除手机验证码
-        redisTemplate.delete(user.getUserMobile());
+        if (redisTemplate.keys("*").contains(user.getUserMobile())) {
+            redisTemplate.delete(user.getUserMobile());
+        }
 
         // 产生activeCode
         String activeCode = UUID.randomUUID().toString().replace("-","");
@@ -141,13 +146,18 @@ public class UserRegisterController {
      * @return StateCode
      */
     @GetMapping("/activeMail")
-    public ResponseEntity<Void> activeMail(String mobile,String activeCode){
+    public ResponseEntity<BaseResult> activeMail(String mobile,String activeCode){
         // 1 从redis中获取code
-        String redisCodes = (String) redisTemplate.opsForValue().get(mobile);
+        String redisCodes = "";
+        if (redisTemplate.keys("*").contains(mobile)) {
+            redisCodes = (String) redisTemplate.opsForValue().get(mobile);
+        } else {
+            return ResponseEntity.ok(new BaseResult(1 , "邮件失效，请重新发送"));
+        }
 
         // 2 比较
-        if (redisCodes == null | (redisCodes != null && !redisCodes.equals(activeCode))) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        if ( !redisCodes.equals(activeCode) ) {
+            return ResponseEntity.ok(new BaseResult(1 , "验证码错误，请重新发送"));
         }
 
         // 移除redis中的数据
@@ -157,7 +167,7 @@ public class UserRegisterController {
         this.userRegisterService.upDateByMobile( mobile );
 
         // 返回信息
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok(new BaseResult(0 , "激活成功！"));
     }
 
     /**

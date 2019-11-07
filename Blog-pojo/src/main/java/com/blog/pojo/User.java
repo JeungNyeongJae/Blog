@@ -45,4 +45,7 @@ public class User implements Serializable {
     @Column(name="status")
     @NotNull
     private Integer status;
+
+    @Column(name="friend")
+    private Integer friend;
 }

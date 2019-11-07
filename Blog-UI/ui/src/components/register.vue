@@ -155,7 +155,7 @@
         if (value === '') {
           callback(new Error('请输入手机验证码'))
         } else {
-          callback()
+            this.verifySmsCode(value , callback);
         }
       };
       const validatePass = (rule, value, callback) => {
@@ -231,7 +231,7 @@
         let tel = this.ruleForm.checkPhone;
         if (this.checkMobile(tel)) {
           let time = 60;
-            this.$axios.get( "/api/web-service/sendSms/" + tel ).then( res => {
+            this.$axios.get( "/api/web-service/sendSms?mobile=" + tel ).then( res => {
                 let d = res.data.data;
                 if(d.errno === 0){
                     this.buttonText = '已发送';
@@ -263,7 +263,7 @@
       },
       async queryMobile(str, callback){
         // new Promise((resolve,reject)=> {
-          this.$axios.get("/api/web-service/query/" + str).then(res =>{
+          this.$axios.get("/api/web-service/query?mobile=" + str).then(res =>{
             if (res.data.data.errno === 1){
               callback(new Error('该手机号码已存在，请修改手机号码。'));
             } else {
@@ -271,6 +271,16 @@
             }
           })
   },
+        // 验证手机验证码是否正确
+        async verifySmsCode( value , callback ){
+            this.$axios.get("/api/web-service/verifySms?mobile=" + this.ruleForm.checkPhone + "&code=" + value).then( res => {
+                if ( res.data.data.errno === 1 ) {
+                    callback(new Error('验证码错误'));
+                } else {
+                    callback();
+                }
+            });
+        },
       // <!--进入登录页-->
       gotoLogin() {},
       resetForm(formName) {
