@@ -1,35 +1,34 @@
-package com.blog.controller.user;
+package com.blog.controller.user
 
-import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
-import com.aliyuncs.exceptions.ClientException;
-import com.blog.pojo.User;
-import com.blog.service.user.UserRegisterService;
-import com.blog.utils.MailUtils;
-import com.blog.utils.SmsUtil;
-import com.blog.vo.BaseResult;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import javax.annotation.Resource;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import com.aliyuncs.exceptions.ClientException
+import com.blog.pojo.User
+import com.blog.service.user.UserRegisterService
+import com.blog.utils.MailUtils
+import com.blog.utils.SmsUtil
+import com.blog.vo.BaseResult
+import org.apache.commons.lang3.RandomStringUtils
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
+import java.util.*
+import java.util.concurrent.TimeUnit
+import javax.annotation.Resource
 
 /**
- * @author Yinchao
+ *  @author JeungNyeongJae
+ *  @date 2019/11/7
+ *
  */
-
 @RestController
 @RequestMapping
-public class UserRegisterController {
+class UserRegisterController {
 
     @Autowired
-    private UserRegisterService userRegisterService;
+    private lateinit var userRegisterService: UserRegisterService
 
     @Resource
-    private RedisTemplate redisTemplate;
+    private lateinit var redisTemplate: RedisTemplate<String , String>
 
     /**
      * 注册时发送验证短信
@@ -37,27 +36,26 @@ public class UserRegisterController {
      * @return status code
      */
     @GetMapping("/sendSms")
-    public ResponseEntity<BaseResult> sendSms(String mobile){
+    fun sendSms(mobile: String): ResponseEntity<BaseResult> {
         // 生成四位数验证码
-        String random = RandomStringUtils.randomNumeric(4);
-
-        System.out.println(random);
+        val random = RandomStringUtils.randomNumeric(4)
+        println(random)
 
         // 存入redis
-        redisTemplate.opsForValue().set( mobile , random , 1 , TimeUnit.HOURS);
+        redisTemplate.opsForValue().set(mobile, random, 1, TimeUnit.HOURS)
 
         // 发送短信
-        try {
-            SendSmsResponse sendSmsResponse = SmsUtil.sendSms(mobile, random);
+        return try {
+            val sendSmsResponse = SmsUtil.sendSms(mobile, random)
 
-            if ( "OK".equalsIgnoreCase( sendSmsResponse.getCode() )){
-                return ResponseEntity.ok(new BaseResult( 0 , "发送成功"));
+            if ("OK".equals(sendSmsResponse.code, ignoreCase = true)) {
+                ResponseEntity.ok(BaseResult(0, "发送成功"))
             } else {
-                return ResponseEntity.ok(new BaseResult(1, sendSmsResponse.getMessage()));
+                ResponseEntity.ok(BaseResult(1, sendSmsResponse.message))
             }
-        } catch (ClientException e) {
-            e.printStackTrace();
-            return ResponseEntity.ok(new BaseResult( 1 , "发送失败"));
+        } catch (e: ClientException) {
+            e.printStackTrace()
+            ResponseEntity.ok(BaseResult(1, "发送失败"))
         }
     }
 
@@ -68,13 +66,13 @@ public class UserRegisterController {
      * @return status code
      */
     @GetMapping("/verifySms")
-    public ResponseEntity<BaseResult> verifySms(String mobile , String code){
+    fun verifySms(mobile: String, code: String): ResponseEntity<BaseResult> {
         if (redisTemplate.keys("*").contains(mobile)) {
-            if (redisTemplate.opsForValue().get(mobile).equals(code)) {
-                return ResponseEntity.ok(new BaseResult(0, "OK"));
+            if (redisTemplate.opsForValue().get(mobile) == code) {
+                return ResponseEntity.ok(BaseResult(0, "OK"))
             }
         }
-        return ResponseEntity.ok(new BaseResult(1, "Wrong"));
+        return ResponseEntity.ok(BaseResult(1, "Wrong"))
     }
 
     /**
@@ -83,20 +81,20 @@ public class UserRegisterController {
      * @return state code
      */
     @PostMapping("/sendMail")
-    public ResponseEntity<BaseResult> sendMail(@RequestBody User user){
+    fun sendMail(@RequestBody user: User): ResponseEntity<BaseResult> {
 
         // 移除手机验证码
-        if (redisTemplate.keys("*").contains(user.getUserMobile())) {
-            redisTemplate.delete(user.getUserMobile());
+        if (redisTemplate.keys("*").contains(user.userMobile)) {
+            redisTemplate.delete(user.userMobile)
         }
 
         // 产生activeCode
-        String activeCode = UUID.randomUUID().toString().replace("-","");
+        val activeCode = UUID.randomUUID().toString().replace("-", "")
 
         // 邮件信息
-        String activeUrl = "http://localhost:10010/v1" +
-                "/web-service/activeMail?mobile="+user.getUserMobile()+"&activeCode="+activeCode;
-        String content = "<div>\n" +
+        val activeUrl = "http://localhost:10010/v1" +
+                "/web-service/activeMail?mobile=" + user.userMobile + "&activeCode=" + activeCode
+        val content = "<div>\n" +
                 "            <br>\n" +
                 "            <h2>JeungNyeongJae</h2>\n" +
                 "            <font color=\"#a9a9a9\">____________________________</font>\n" +
@@ -122,21 +120,22 @@ public class UserRegisterController {
                 "            <font style=\"color: #55595f; font-size: 14px\">本邮件由系统自动发送，请勿直接回复，如有任何意见或建议，请您通过<a href=\"http://www.yunyeohyang.cn\">这些方式</a>联系我们</font>\n" +
                 "            <br>\n" +
                 "            <font style=\"color: #55595f; font-size: 14px\">YunYeoHyang.cn</font>\n" +
-                "        </div>";
+                "        </div>"
         try {
             // 发送邮件
-            MailUtils.sendMail(user.getUserEmail(),"博客网账号激活",content);
-        } catch (Exception e) {
-            e.printStackTrace();
+            MailUtils.sendMail(user.userEmail, "博客网账号激活", content)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
+
         // 将邮件激活码 放到redis中
-        redisTemplate.opsForValue().set(user.getUserMobile(), activeCode,1,TimeUnit.DAYS);
+        redisTemplate.opsForValue().set(user.userMobile, activeCode, 1, TimeUnit.DAYS)
 
         // 保存用户信息
-        userRegisterService.saveUser(user);
+        userRegisterService.saveUser(user)
 
         // 返回信息
-        return ResponseEntity.ok(new BaseResult(0 , "邮件发送成功"));
+        return ResponseEntity.ok(BaseResult(0, "邮件发送成功"))
     }
 
     /**
@@ -146,28 +145,28 @@ public class UserRegisterController {
      * @return StateCode
      */
     @GetMapping("/activeMail")
-    public ResponseEntity<BaseResult> activeMail(String mobile,String activeCode){
+    fun activeMail(mobile: String, activeCode: String): ResponseEntity<BaseResult> {
         // 1 从redis中获取code
-        String redisCodes = "";
+        val redisCodes: String
         if (redisTemplate.keys("*").contains(mobile)) {
-            redisCodes = (String) redisTemplate.opsForValue().get(mobile);
+            redisCodes = redisTemplate.opsForValue().get(mobile) as String
         } else {
-            return ResponseEntity.ok(new BaseResult(1 , "邮件失效，请重新发送"));
+            return ResponseEntity.ok(BaseResult(1, "邮件失效，请重新发送"))
         }
 
         // 2 比较
-        if ( !redisCodes.equals(activeCode) ) {
-            return ResponseEntity.ok(new BaseResult(1 , "验证码错误，请重新发送"));
+        if (redisCodes != activeCode) {
+            return ResponseEntity.ok(BaseResult(1, "验证码错误，请重新发送"))
         }
 
         // 移除redis中的数据
-        redisTemplate.delete(mobile);
+        redisTemplate.delete(mobile)
 
         // 激活
-        this.userRegisterService.upDateByMobile( mobile );
+        this.userRegisterService.upDateByMobile(mobile)
 
         // 返回信息
-        return ResponseEntity.ok(new BaseResult(0 , "激活成功！"));
+        return ResponseEntity.ok(BaseResult(0, "激活成功！"))
     }
 
     /**
@@ -176,12 +175,11 @@ public class UserRegisterController {
      * @return User
      */
     @GetMapping("/query")
-    public ResponseEntity<BaseResult> queryUser(String mobile){
+    fun queryUser(mobile: String): ResponseEntity<BaseResult> {
         // 通过手机号查询用户
-        if (this.userRegisterService.findByMobile( mobile ) != null) {
-            return ResponseEntity.ok(new BaseResult( 1 , "该手机号已被注册！"));
-        }
-        return ResponseEntity.ok(new BaseResult( 0 , "OK"));
+        return if (this.userRegisterService.findByMobile(mobile) != null) {
+            ResponseEntity.ok(BaseResult(1, "该手机号已被注册！"))
+        } else ResponseEntity.ok(BaseResult(0, "OK"))
     }
 
     /**
@@ -191,14 +189,13 @@ public class UserRegisterController {
      * @return User
      */
     @GetMapping("/queryUser")
-    public ResponseEntity<User> queryUser(@RequestParam("mobile") String mobile , @RequestParam("password") String password){
+    fun queryUser(@RequestParam("mobile") mobile: String, @RequestParam("password") password: String): ResponseEntity<User> {
         // 通过手机号查询用户
-        User user = this.userRegisterService.findByMobile( mobile );
+        val user = this.userRegisterService.findByMobile(mobile)
 
         // 非空判断&密码校验
-        if(user == null || !user.getUserPassword().equals(password)){
-            return ResponseEntity.ok( null );
-        }
-        return ResponseEntity.ok( user );
+        return if (user == null || user.userPassword != password) {
+            ResponseEntity.ok(null)
+        } else ResponseEntity.ok(user)
     }
 }
