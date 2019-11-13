@@ -6,7 +6,7 @@ import com.blog.service.user.UserRegisterService
 import com.blog.utils.MailUtils
 import com.blog.utils.SmsUtil
 import com.blog.vo.BaseResult
-import org.apache.commons.lang3.RandomStringUtils
+import org.apache.commons.lang.RandomStringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.http.ResponseEntity

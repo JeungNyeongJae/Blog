@@ -1,7 +1,7 @@
 package com.blog
 
-import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.runApplication
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient
 
 /**
@@ -11,9 +11,8 @@ import org.springframework.cloud.netflix.eureka.EnableEurekaClient
  */
 @SpringBootApplication
 @EnableEurekaClient
-
 open class WebServiceApplication
 
 fun main(args: Array<String>) {
-    SpringApplication.run(WebServiceApplication::class.java, *args)
+    runApplication<WebServiceApplication>(*args)
 }
